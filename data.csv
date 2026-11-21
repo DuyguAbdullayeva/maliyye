@@ -1,0 +1,53 @@
+series,period,value,unit,source,note
+cashless_value,2019,4.8,mlrd ₼,S3,
+cashless_value,2020,6.4,mlrd ₼,S4,
+cashless_value,2021,11.5,mlrd ₼,S9,
+cashless_value,2022,24.4,mlrd ₼,S5,
+cashless_value,2023,49,mlrd ₼,S3,
+cashless_value,2024,78.9,mlrd ₼,S6,
+cashless_value,2025,99.1,mlrd ₼,S1;S2,
+cashless_share,2020,23,%,S20,Mərkəzi Bank rəsmisinin müqayisəsindən; illik rəqəm olmaya bilər
+cashless_share,2021,31.8,%,S5,Hesablama: 43.2 − 11.4 faiz bəndi
+cashless_share,2022,43.2,%,S5,
+cashless_share,2023,55.6,%,S6,Hesablama: 64.2 − 8.6 faiz bəndi
+cashless_share,2024,64.2,%,S6,
+cashless_share,2025,67.6,%,S2,
+cards,2020,9.6,mln,S4,İlin sonuna (1 yanvar 2021)
+cards,2022,13.6,mln,S5,İlin sonuna (1 yanvar 2023)
+cards,2023,16.6,mln,S8,İlin sonuna
+cards,2024,19.9,mln,S7,İlin sonuna (1 yanvar 2025)
+findex_all,Azərbaycan,51.6,%,S10,2024; 15 yaş və yuxarı böyüklər
+findex_all,Ermənistan,60.6,%,S10,2024
+findex_all,Gürcüstan,69.4,%,S10,2024
+findex_all,Türkiyə,71.4,%,S10,2024
+findex_all,Qazaxıstan,85.0,%,S10,2024
+findex_women,Azərbaycan,40.7,%,S11,2024; qadınlar
+findex_women,Ermənistan,58.8,%,S11,2024; qadınlar
+findex_women,Gürcüstan,69.8,%,S11,2024; qadınlar
+findex_women,Qazaxıstan,82.1,%,S11,2024; qadınlar
+monthly_2025,01,6.9,mlrd ₼,S14,
+monthly_2025,02,7.0,mlrd ₼,S15,Mənbə 7 mlrd manatdan çox yazır; 7.0 aşağı hədd kimi götürülüb
+monthly_2025,06,8.439,mlrd ₼,S13,
+monthly_2025,07,8.753,mlrd ₼,S16,
+monthly_2025,09,8.898,mlrd ₼,S17,
+monthly_2025,10,8.83,mlrd ₼,S18,
+monthly_2025,11,7.94,mlrd ₼,S19,
+channel_jun2025,e_commerce,7.375,mlrd ₼,S13,2025-ci ilin iyun ayı
+channel_jun2025,other,1.064,mlrd ₼,S13,Hesablama: 8.439 − 7.375 (POS və özünəxidmət terminalları)
+count_value_jan_apr_2025,count,91,%,S12,"Əməliyyatların sayına görə; mənbə ""91%-dən çox"" yazır"
+count_value_jan_apr_2025,value,67,%,S12,"Dəyərə görə; mənbə ""67%-dən çox"" yazır"
+ips_value,2022,549,mln ₼,S24,Ani ödənişlər sistemi
+ips_value,2023,1054,mln ₼,S24,
+ips_value,2024,1373,mln ₼,S24,
+ips_count,2022,338,min,S24,Ani ödənişlər sistemi üzrə əməliyyat sayı
+ips_count,2023,588,min,S24,
+ips_count,2024,801,min,S24,
+per_capita_ops,2023,93,əməliyyat/nəfər/il,S26,Cari göstərici
+per_capita_ops,hədəf,200,əməliyyat/nəfər/il,S26,Mərkəzi Bankın strateji hədəfi
+nps_gdp_multiple,9 ay 2025,6.2,dəfə,S25,Milli ödəniş sistemi üzrə ödənişlər ÜDM-in neçə mislidir (590.1 mlrd ₼)
+eca_avg,2024,69,%,S21,Avropa və Mərkəzi Asiya regionunda rəqəmsal ödəniş istifadəsi
+pos_contactless,2023,91,%,S8,POS ödənişlərinin təmassız payı (ən azı)
+cards_contactless,2023,76,%,S8,Təmassız ödənişi dəstəkləyən kartların payı (ən azı)
+apple_google_pos,2023,25,%,S26,POS-da nağdsız ödənişlərin hər 4-dən 1-i Apple Pay və ya Google Pay ilə
+google_pay_value,2022,85.7,mln ₼,S28,
+google_pay_value,2023,813.2,mln ₼,S27,2022-yə nisbətən 9.5 dəfə
