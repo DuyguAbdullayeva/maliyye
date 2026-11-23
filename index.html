@@ -1,0 +1,605 @@
+<title>Ödəniş Xəritəsi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: report-style dashboard. KPI strip, one wide trend chart, paired panels, then findings, data gaps and a checkable data table with sources. */
+:root {
+  --bg: #f7f7ee;
+  --surface: #ffffff;
+  --fg: #0e2a1b;
+  --muted: #46563f;
+  --line: #dfe3cf;
+  --accent: #0f7a36;
+  --accent-soft: #e4f7a8;
+  --accent2: #e8590c;
+  --accent2-soft: #ffe2b0;
+  --pop: #ff6a1a;
+  --lime: #c7f23a;
+  --saff: #ffb81c;
+  --forest: #0e2a1b;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e2a1b; --surface: #143824; --fg: #f4f6e8; --muted: #b9c8ae; --line: #274333;
+    --accent: #c7f23a; --accent-soft: #2c4a1c; --accent2: #ffb81c; --accent2-soft: #4a3a10;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e2a1b; --surface: #143824; --fg: #f4f6e8; --muted: #b9c8ae; --line: #274333;
+  --accent: #c7f23a; --accent-soft: #2c4a1c; --accent2: #ffb81c; --accent2-soft: #4a3a10;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-size: 1.15rem; margin: 0 0 4px; text-wrap: balance; }
+h3 { font-size: 1rem; margin: 0 0 6px; }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 70ch; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; min-width: 0; }
+.kpi .v { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.kpi .v small { font-size: 0.95rem; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.kpi .d { color: var(--muted); font-size: 0.86rem; margin-top: 6px; }
+.kpi.k1 .v { color: var(--accent); }
+.kpi.k3 .v { color: var(--accent2); }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.panel .sub { color: var(--muted); font-size: 0.86rem; }
+.panel .note { color: var(--muted); font-size: 0.8rem; margin-top: auto; }
+.head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.chart { position: relative; height: 300px; min-width: 0; }
+.chart.tall { height: 340px; }
+.chart.short { height: 260px; }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.82rem; padding: 6px 12px; background: transparent; color: var(--muted); border: 0; border-right: 1px solid var(--line); cursor: pointer; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--fg); font-weight: 600; }
+button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.bars { display: flex; flex-direction: column; gap: 14px; }
+.bar-row .lbl { display: flex; justify-content: space-between; gap: 12px; font-size: 0.88rem; margin-bottom: 4px; }
+.track { height: 14px; background: var(--line); border-radius: 3px; overflow: hidden; display: flex; }
+.seg-fill { height: 100%; }
+.f-acc { background: var(--accent); }
+.f-acc2 { background: var(--accent2); }
+.f-soft { background: var(--accent2-soft); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.82rem; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.finding { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.finding .claim { font-weight: 600; text-wrap: balance; }
+.finding .cause { color: var(--muted); font-size: 0.9rem; }
+.finding .cause b { color: var(--fg); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+.tag { font-size: 0.75rem; padding: 2px 7px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); text-decoration: none; }
+a.tag:hover { border-color: var(--accent); color: var(--fg); }
+
+.gaps { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; }
+.gaps ul { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.gaps li { min-width: 0; }
+.gaps li span { color: var(--muted); }
+
+.tablebar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+select { font: inherit; font-size: 0.86rem; padding: 6px 8px; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; max-width: 100%; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); white-space: nowrap; }
+td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+.sources ol { margin: 8px 0 0; padding-left: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 6px 24px; font-size: 0.86rem; }
+.sources li { display: flex; gap: 10px; min-width: 0; }
+.sources li b { color: var(--muted); min-width: 2.4em; font-variant-numeric: tabular-nums; }
+.sources a { color: var(--accent); overflow-wrap: anywhere; }
+.foot { color: var(--muted); font-size: 0.82rem; }
+#err { display: none; border: 1px solid var(--accent2); color: var(--accent2); padding: 12px 14px; border-radius: 8px; }
+
+.hero { position: relative; overflow: hidden; background: linear-gradient(120deg, #0e2a1b 0%, #0f7a36 100%); color: #f4f6e8; border-radius: 14px; padding: 28px 28px 30px; }
+.hero::before { content: ""; position: absolute; right: -50px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: var(--lime); opacity: .95; }
+.hero::after { content: ""; position: absolute; right: 150px; bottom: -40px; width: 110px; height: 110px; border-radius: 50%; background: var(--saff); }
+.hero > * { position: relative; z-index: 1; }
+.hero .eyebrow { color: var(--lime); }
+.hero h1 { color: #fff; max-width: 14ch; }
+.hero .who { color: var(--saff); font-weight: 700; margin-bottom: 10px; }
+.hero .lede { color: #dfe9d2; max-width: 62ch; }
+.kpi.c1 { background: var(--lime); border-color: var(--lime); color: #0e2a1b; }
+.kpi.c2 { background: var(--saff); border-color: var(--saff); color: #0e2a1b; }
+.kpi.c3 { background: var(--forest); border-color: var(--lime); color: #f4f6e8; }
+.kpi.c4 { background: var(--pop); border-color: var(--pop); color: #0e2a1b; }
+.kpi.c1 .v, .kpi.c2 .v, .kpi.c4 .v { color: #0e2a1b; }
+.kpi.c3 .v { color: var(--lime); }
+.kpi.c1 .d, .kpi.c2 .d, .kpi.c4 .d { color: #1d3a28; }
+.kpi.c3 .d { color: #c9d8bd; }
+.kpi.c1 .v small, .kpi.c2 .v small, .kpi.c4 .v small { color: #1d3a28; }
+.kpi.c3 .v small { color: #c9d8bd; }
+.panel { border-top: 4px solid var(--accent); }
+.panel.o { border-top-color: var(--pop); }
+.panel.y { border-top-color: var(--saff); }
+.sechead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.sechead span { background: var(--lime); color: #0e2a1b; font-weight: 700; font-size: .75rem; padding: 3px 9px; border-radius: 99px; letter-spacing: .04em; }
+.dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; max-width: 360px; }
+.dots i { aspect-ratio: 1; border-radius: 50%; background: var(--accent); display: block; }
+.dots i.o { background: var(--pop); }
+.big { font-size: 2.6rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.big.o { color: var(--pop); }
+.big.g { color: var(--accent); }
+.pbar { margin-top: 6px; }
+.pbar .lbl { display: flex; justify-content: space-between; font-size: .9rem; margin-bottom: 4px; }
+.ptrack { height: 22px; background: var(--line); border-radius: 11px; overflow: hidden; }
+.pfill { height: 100%; border-radius: 11px; }
+.legend i.dot { border-radius: 50%; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Maliyyə və ödənişlər · Rəqəmsal transformasiya və dayanıqlı inkişaf</div>
+    <h1>Nağdsız ödənişlər paneli</h1>
+    <p class="who">Müəllif: Duyğu Abdullayeva</p>
+    <p class="lede">Sual: Azərbaycanda kartla nağdsız ödənişlərin payı son illərdə necə dəyişib, artım hansı kanaldan gəlir və yetkin əhalinin rəqəmsal ödəniş istifadəsi qonşu ölkələrlə müqayisədə hansı səviyyədədir?</p>
+  </header>
+
+  <div id="err" role="alert">Data faylları yüklənmədi. Səhifəni yeniləyin.</div>
+
+  <section class="kpis" id="kpis" aria-label="Əsas göstəricilər"></section>
+
+  <section class="panel" aria-labelledby="t1">
+    <div class="head">
+      <div>
+        <h2 id="t1">Kartla ölkədaxili nağdsız ödənişlər, 2019–2025</h2>
+        <p class="sub">Sütunlar həcmi (mlrd ₼), xətt ölkədaxili kart dövriyyəsində nağdsız payı (%) göstərir.</p>
+      </div>
+      <div class="seg" role="group" aria-label="Qrafikin görünüşü">
+        <button type="button" data-mode="both" aria-pressed="true">Hər ikisi</button>
+        <button type="button" data-mode="value" aria-pressed="false">Həcm</button>
+        <button type="button" data-mode="share" aria-pressed="false">Pay</button>
+      </div>
+    </div>
+    <div class="chart tall"><canvas id="c1" role="img" aria-label="İllər üzrə kartla nağdsız ödənişlərin həcmi və payı"></canvas></div>
+    <p class="note">2019 üçün pay göstəricisi tapılmadı. 2020-ci il payı rəsmi müqayisədən götürülüb və tam illik rəqəm olmaya bilər. 2021 və 2023 paylarının necə hesablandığı data cədvəlində yazılıb.</p>
+  </section>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="t2">
+      <div>
+        <h2 id="t2">Dövriyyədə olan ödəniş kartları</h2>
+        <p class="sub">İlin sonuna, milyon ədəd. Yalnız tapılan illər göstərilib.</p>
+      </div>
+      <div class="chart short"><canvas id="c2" role="img" aria-label="İllər üzrə dövriyyədəki kartların sayı"></canvas></div>
+      <p class="note">2021 və 2025 üçün il sonu kart sayı tapılmadı.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="t3">
+      <div>
+        <h2 id="t3">Artım hansı kanaldandır?</h2>
+        <p class="sub">2025-ci ilin iyun ayında ölkədaxili kart ödənişləri, nağdsız hissə.</p>
+      </div>
+      <div class="bars" id="channels"></div>
+      <div>
+        <h3>Say və dəyər üzrə nağdsız pay</h3>
+        <p class="sub" style="margin-bottom:10px">2025-ci ilin yanvar–aprel ayları, ölkədaxili kart əməliyyatları.</p>
+        <div class="bars" id="cv"></div>
+      </div>
+      <p class="note">Mənbələr ayların rəqəmlərini “çox” kimi verir. Çubuqlar aşağı hədləri göstərir.</p>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="t4">
+      <div>
+        <h2 id="t4">Rəqəmsal ödəniş edən və ya alan yetkinlər, 2024</h2>
+        <p class="sub">15 yaş və yuxarı əhalinin payı (%), Global Findex 2025.</p>
+      </div>
+      <div class="chart"><canvas id="c4" role="img" aria-label="Beş ölkədə rəqəmsal ödəniş istifadəsi, bütün böyüklər və qadınlar"></canvas></div>
+      <p class="note">Türkiyə üçün qadın göstəricisi tapılmadı. Azərbaycan üzrə nümunə təxminən 1000 nəfərdir.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="t5">
+      <div>
+        <h2 id="t5">2025-ci ildə aylıq həcm</h2>
+        <p class="sub">Ölkədaxili kart ödənişləri, nağdsız hissə, mlrd ₼. Yalnız açıqlanmış aylar.</p>
+      </div>
+      <div class="chart"><canvas id="c5" role="img" aria-label="2025-ci ilin açıqlanmış ayları üzrə nağdsız həcm"></canvas></div>
+      <p class="note">Mart–may, avqust və dekabr üçün rəqəm tapılmadı, buna görə nöqtələr birləşdirilməyib.</p>
+    </section>
+  </div>
+
+  <section aria-labelledby="t11">
+    <div class="sechead"><h2 id="t11" style="margin:0">Daha yaxından</h2><span>ƏLAVƏ VİZUALLAR</span></div>
+    <div class="grid2">
+      <section class="panel y">
+        <div><h2>İllik artım tempi</h2><p class="sub">Həcmin əvvəlki ilə nisbətən artımı, %. Hesablama.</p></div>
+        <div class="chart short"><canvas id="c6" role="img" aria-label="Nağdsız həcmin illik artım faizi, 2020–2025"></canvas></div>
+        <p class="note">Mənbə: S3, S4, S5, S6, S9, S1, S2. Artım 2022-də zirvəyə çatıb, 2025-də yavaşlayıb.</p>
+      </section>
+      <section class="panel o">
+        <div><h2>Hər 100 manatdan neçəsi onlayndır?</h2><p class="sub">2025-ci ilin iyunu, hər dairə 1 manat.</p></div>
+        <div class="dots" id="dots" role="img" aria-label="100 manatdan 87-si onlayn"></div>
+        <div class="legend"><span><i class="dot" style="background:var(--accent)"></i>E-ticarət</span><span><i class="dot" style="background:var(--pop)"></i>POS və terminallar</span></div>
+        <p class="note">Mənbə: S13. E-ticarətin tərifi dəqiq deyil, bax “Data nəyi göstərmir”.</p>
+      </section>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <section class="panel">
+        <div><h2>Ani ödənişlər sistemi</h2><p class="sub">Dəyər (sütun, mln ₼) və əməliyyat sayı (xətt, min). Kart payına daxil deyil.</p></div>
+        <div class="chart short"><canvas id="c8" role="img" aria-label="Ani ödənişlər sistemi, dəyər və say, 2022–2024"></canvas></div>
+        <p class="note">Mənbə: S24. Dəyər 2022–2024-də təxminən 2,5 dəfə artıb (hesablama).</p>
+      </section>
+      <section class="panel y">
+        <div><h2>Google Pay ödənişləri</h2><p class="sub">mln ₼</p></div>
+        <div class="chart short"><canvas id="c9" role="img" aria-label="Google Pay həcmi 2022 və 2023"></canvas></div>
+        <p class="note">Mənbə: S28 (2022), S27 (2023). Bir ildə təxminən 9,5 dəfə (hesablama).</p>
+      </section>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <section class="panel o">
+        <div><h2>Adambaşına ödəniş əməliyyatı</h2><p class="sub">İllik əməliyyat sayı: 2023 və Mərkəzi Bankın hədəfi.</p></div>
+        <div id="percap"></div>
+        <p class="note">Mənbə: S26. Hədəfə çatma tarixi mənbədə dəqiqləşdirilməyib.</p>
+      </section>
+      <section class="panel">
+        <div><h2>Təmassız və mobil ödənişlər, 2023</h2><p class="sub">%. İlk iki göstərici “ən azı”.</p></div>
+        <div class="chart short"><canvas id="c10" role="img" aria-label="Təmassız və mobil ödənişlərin payı, 2023"></canvas></div>
+        <p class="note">Mənbə: S8, S26.</p>
+      </section>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <section class="panel y">
+        <div><h2>Qadınlarla bütün yetkinlər arasında fərq</h2><p class="sub">Bütün yetkinlər minus qadınlar, faiz bəndi. Mənfi dəyər qadınların yuxarı olduğunu göstərir.</p></div>
+        <div class="chart short"><canvas id="c11" role="img" aria-label="Qadın və ümumi rəqəmsal ödəniş payı arasında fərq"></canvas></div>
+        <p class="note">Mənbə: S10, S11. Fərqlər hesablamadır. Türkiyə üçün qadın göstəricisi tapılmadı.</p>
+      </section>
+      <section class="panel">
+        <div><h2>Region ortası ilə müqayisə</h2><p class="sub">Rəqəmsal ödəniş edən yetkinlərin payı, 2024, %.</p></div>
+        <div class="chart short"><canvas id="c12" role="img" aria-label="Azərbaycan, region ortası və Qazaxıstan"></canvas></div>
+        <p class="note">Mənbə: S10, S21 (region ortası).</p>
+      </section>
+    </div>
+  </section>
+
+  <section aria-labelledby="t6">
+    <h2 id="t6" style="margin-bottom:12px">Tapıntılar</h2>
+    <div class="findings">
+      <article class="finding">
+        <p class="claim">Kartla nağdsız ödənişlərin həcmi 5 ildə təxminən 15,5 dəfə artıb, payı 23%-dən 67,6%-ə çatıb.</p>
+        <p class="num">2020-ci ildə 6,4 mlrd ₼ idi, 2025-ci ildə 99,1 mlrd ₼ oldu. Pay 44,6 faiz bəndi yüksəlib. Dövriyyədəki kartların sayı 2020-ci ilin sonunda 9,6 mln, 2024-cü ilin sonunda 19,9 mln idi.</p>
+        <p class="cause"><b>Mümkün səbəblər:</b> 2018–2020 Dövlət Proqramı və 2021–2023 Rəqəmsal Ödəniş Strategiyası; təmassız kartların yayılması (2023-də kartların 76%-dən çoxu təmassız ödənişi dəstəkləyirdi, POS ödənişlərinin 91%-dən çoxu təmassız idi); kart sayının 2020–2024-də 2 dəfədən çox artması. Bu səbəblər data ilə sınaqdan keçirilməyib.</p>
+        <div class="tags"><a class="tag" href="https://uploads.cbar.az/assets/Annual%20report%202020_FINAL.pdf" target="_blank" rel="noopener">S4</a><a class="tag" href="https://api.report.az/en/finance/cba-non-cash-payments-in-azerbaijan-approached-azn100-billion-in-2025" target="_blank" rel="noopener">S2</a><a class="tag" href="https://www.trend.az/business/4015624.html" target="_blank" rel="noopener">S7</a><a class="tag" href="https://www.trend.az/azerbaijan/business/3846538.html" target="_blank" rel="noopener">S8</a></div>
+      </article>
+
+      <article class="finding">
+        <p class="claim">Nağdsız ödənişlərin dəyərinin təxminən 87%-i onlayn kanaldan gəlir, POS isə kiçik pay tutur.</p>
+        <p class="num">2025-ci ilin iyununda 8,439 mlrd ₼ nağdsız ödənişin 7,375 mlrd ₼-ı (87,4%) e-ticarətə düşüb. Qalan təxminən 1,064 mlrd ₼ POS və özünəxidmət terminallarındadır. Yanvar–aprel 2025-də nağdsız əməliyyatlar saya görə 91%-dən çox, dəyərə görə 67%-dən çox olub.</p>
+        <p class="cause"><b>Mümkün səbəblər:</b> e-ticarət kateqoriyasına onlayn köçürmələr və kommunal ödənişlər də daxil ola bilər (tərif yoxlanmalıdır). Say və dəyər payı arasındakı fərq o deməkdir ki, nağd tipli əməliyyatlar azdır, amma orta məbləği xeyli böyükdür.</p>
+        <div class="tags"><a class="tag" href="https://www.trend.az/business/4073945.html" target="_blank" rel="noopener">S13</a><a class="tag" href="https://www.intellinews.com/azerbaijan-s-fintech-sector-posts-growth-as-digital-payments-expand-and-regulatory-reforms-intensify-387723/" target="_blank" rel="noopener">S12</a></div>
+      </article>
+
+      <article class="finding">
+        <p class="claim">Kart ödənişləri yüksək olsa da, yetkinlərin rəqəmsal ödəniş istifadəsi beş ölkə arasında ən aşağıdır.</p>
+        <p class="num">2024-də Azərbaycanda 51,6%, Ermənistanda 60,6%, Gürcüstanda 69,4%, Türkiyədə 71,4%, Qazaxıstanda 85,0%. Azərbaycanda qadınların payı 40,7%-dir, yəni ölkə ortalamasından 10,9 bənd aşağıdır. Gürcüstanda qadın göstəricisi (69,8%) ortalamadan 0,4 bənd yüksəkdir.</p>
+        <p class="cause"><b>Mümkün səbəblər (hipotez):</b> iki mənbə fərqli şey ölçür. Findex əhalinin neçə faizinin istifadə etdiyini, Mərkəzi Bank isə kart əməliyyatlarının dəyər payını göstərir. Bir nəfərdə bir neçə kart ola bilər. Cins fərqinin səbəbini yoxlamaq üçün Findex mikrodatası lazımdır.</p>
+        <div class="tags"><a class="tag" href="https://finobservatory.org/rankings/findex/digital" target="_blank" rel="noopener">S10</a><a class="tag" href="https://genderdata.worldbank.org/en/indicator/g20-any" target="_blank" rel="noopener">S11</a><a class="tag" href="https://microdata.worldbank.org/catalog/7867" target="_blank" rel="noopener">S22</a></div>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="t10">
+    <h2 id="t10">Maraqlı faktlar</h2>
+    <div class="kpis" style="margin-top:12px">
+      <div class="kpi k1"><div class="v">2,5×</div><div class="d">Ani ödənişlər sistemi 2022–2024: 549 → 1 373 mln ₼ <a class="tag" href="#t9">S24</a></div></div>
+      <div class="kpi k3"><div class="v">9,5×</div><div class="d">Google Pay həcmi 2022–2023: 85,7 → 813,2 mln ₼ <a class="tag" href="#t9">S27</a> <a class="tag" href="#t9">S28</a></div></div>
+      <div class="kpi k1"><div class="v">93 → 200</div><div class="d">Adambaşına illik ödəniş əməliyyatı: 2023 və Mərkəzi Bankın hədəfi <a class="tag" href="#t9">S26</a></div></div>
+      <div class="kpi k3"><div class="v">6,2×</div><div class="d">Milli ödəniş sistemi üzrə 9 aylıq ödənişlər ÜDM-in neçə mislidir <a class="tag" href="#t9">S25</a></div></div>
+      <div class="kpi k1"><div class="v">91%+</div><div class="d">POS ödənişlərinin təmassız payı, 2023 <a class="tag" href="#t9">S8</a></div></div>
+      <div class="kpi k3"><div class="v">69%</div><div class="d">Avropa və Mərkəzi Asiya ortası, Azərbaycan 51,6% <a class="tag" href="#t9">S21</a> <a class="tag" href="#t9">S10</a></div></div>
+    </div>
+  </section>
+
+  <section class="gaps" aria-labelledby="t7">
+    <h2 id="t7">Data nəyi göstərmir</h2>
+    <ul>
+      <li><b>Region üzrə bölgü yoxdur.</b> <span>Rayon və region üzrə nağdsız əməliyyat həcmi, POS sayı və kart sahibliyi tapılmadı. Bu data Mərkəzi Bankda, banklarda və Dövlət Vergi Xidmətində (POS qeydiyyatı) ola bilər. Dövlət Statistika Komitəsindən əhali və gəlir datası ilə birləşdirmək olar.</span></li>
+      <li><b>E-ticarət kateqoriyasının tərifi aydın deyil.</b> <span>Kartdan karta köçürmələr və kommunal ödənişlər daxildirsə, 87% onlayn alış-verişin real payını göstərmir. Mərkəzi Bankın hesabatlarının metodologiya hissəsindən yoxlamaq lazımdır.</span></li>
+      <li><b>Findex üzrə kəsimlər çatışmır.</b> <span>Azərbaycanda kişi göstəricisi, yaş və region üzrə rəqəmlər bu panelə daxil deyil, 2021 dəyəri də yoxdur. Mikrodatanı (anydigpayment, female, age dəyişənləri) yükləyib çəkili hesablamaq olar. Nümunə təxminən 1000 nəfər olduğu üçün kiçik qruplar etibarsız çıxa bilər.</span></li>
+      <li><b>Mənbələr 2024 üçün ümumi kart dövriyyəsini fərqli verir.</b> <span>Trend.az 122,9 mlrd ₼ (+39%), APA isə 126 mlrd ₼-dan çox (+27%) yazır. Buna görə panelə ümumi dövriyyə yox, yalnız nağdsız hissə salınıb.</span></li>
+      <li><b>Zaman seriyasında boşluqlar var.</b> <span>2019 üçün pay, 2021 və 2025 üçün il sonu kart sayı, 2025-in bəzi ayları tapılmadı. Pay göstəricisinin dövrü illər üzrə eyni deyil (data cədvəlinə baxın).</span></li>
+      <li><b>Yalnız Azərbaycan bankları və ölkədaxili kart əməliyyatları.</b> <span>Ani ödənişlər sistemi, mobil pul və nağd pulla edilən ödənişlər nağdsız payın hesabına daxil deyil.</span></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="t8" class="datasec">
+    <div class="tablebar">
+      <div>
+        <h2 id="t8">Data cədvəli</h2>
+        <p class="sub">Panelin hər qrafiki data.csv faylından oxunur. Hər sətrin mənbəyi sağdadır.</p>
+      </div>
+      <label class="sub" for="seriesSel">Seriya
+        <select id="seriesSel"></select>
+      </label>
+    </div>
+    <div class="tablewrap" style="margin-top:12px">
+      <table>
+        <thead><tr><th>Dövr</th><th>Dəyər</th><th>Vahid</th><th>Qeyd</th><th>Mənbə</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sources" aria-labelledby="t9">
+    <h2 id="t9">Mənbələr</h2>
+    <ol id="srcList"></ol>
+  </section>
+
+  <p class="foot">Rəqəmlər göstərilən mənbələrdən götürülüb. “Hesablama” qeydi olan sətirlər mənbədəki rəqəmlərdən hesablanıb.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  var MONTHS = ['Yan','Fev','Mar','Apr','May','İyn','İyl','Avq','Sen','Okt','Noy','Dek'];
+  var SERIES = {
+    cashless_value: 'Kartla nağdsız ödənişlərin həcmi',
+    cashless_share: 'Nağdsız pay (ölkədaxili kart dövriyyəsi)',
+    cards: 'Dövriyyədəki ödəniş kartları',
+    findex_all: 'Rəqəmsal ödəniş, bütün böyüklər (2024)',
+    findex_women: 'Rəqəmsal ödəniş, qadınlar (2024)',
+    monthly_2025: 'Aylıq nağdsız həcm (2025)',
+    channel_jun2025: 'Kanal üzrə bölgü (iyun 2025)',
+    count_value_jan_apr_2025: 'Say və dəyər payı (yanvar–aprel 2025)',
+    ips_value: 'Ani ödənişlər sistemi, dəyər',
+    ips_count: 'Ani ödənişlər sistemi, əməliyyat sayı',
+    per_capita_ops: 'Adambaşına ödəniş əməliyyatı və hədəf',
+    nps_gdp_multiple: 'Milli ödəniş sistemi / ÜDM (9 ay 2025)',
+    eca_avg: 'Avropa və Mərkəzi Asiya ortası (2024)',
+    pos_contactless: 'POS ödənişlərində təmassız pay (2023)',
+    cards_contactless: 'Təmassız dəstəkləyən kartlar (2023)',
+    apple_google_pos: 'POS-da Apple Pay / Google Pay payı (2023)',
+    google_pay_value: 'Google Pay həcmi'
+  };
+  var D = {}, SRC = {}, charts = [], c1 = null, mode = 'both';
+
+  function parseCSV(text) {
+    var rows = [], row = [], f = '', q = false, i, ch;
+    for (i = 0; i < text.length; i++) {
+      ch = text[i];
+      if (q) {
+        if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else { q = false; } }
+        else { f += ch; }
+      } else if (ch === '"' && f === '') { q = true; }
+      else if (ch === ',') { row.push(f); f = ''; }
+      else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
+        row.push(f); f = '';
+        if (row.length > 1 || row[0] !== '') rows.push(row);
+        row = [];
+      } else { f += ch; }
+    }
+    if (f !== '' || row.length) { row.push(f); rows.push(row); }
+    var head = rows.shift();
+    return rows.map(function (r) { var o = {}; head.forEach(function (h, k) { o[h] = r[k] === undefined ? '' : r[k]; }); return o; });
+  }
+  function val(s, p) {
+    var r = (D[s] || []).filter(function (x) { return x.period === p; })[0];
+    return r ? Number(r.value) : null;
+  }
+  function fmt(n, d) {
+    if (n === null || n === undefined) return '–';
+    d = d === undefined ? 1 : d;
+    return n.toFixed(d).replace('.', ',');
+  }
+  function tok(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function el(id) { return document.getElementById(id); }
+
+  function renderKpis() {
+    var v25 = val('cashless_value', '2025'), v24 = val('cashless_value', '2024'), v20 = val('cashless_value', '2020');
+    var s25 = val('cashless_share', '2025'), s20 = val('cashless_share', '2020');
+    var az = val('findex_all', 'Azərbaycan'), kz = val('findex_all', 'Qazaxıstan');
+    el('kpis').innerHTML =
+      '<div class="kpi c1"><div class="v">' + fmt(v25) + '<small>mlrd ₼</small></div><div class="d">2025-ci ildə kartla ölkədaxili nağdsız ödənişlər, əvvəlki ilə nisbətən +' + fmt((v25 / v24 - 1) * 100, 0) + '%</div></div>' +
+      '<div class="kpi c2"><div class="v">' + fmt(s25) + '<small>%</small></div><div class="d">Ölkədaxili kart dövriyyəsində nağdsız pay, 2025. 2020-ci ildə: ' + fmt(s20, 0) + '%</div></div>' +
+      '<div class="kpi c3"><div class="v">' + fmt(v25 / v20) + '<small>×</small></div><div class="d">Nağdsız həcmin 2020–2025 artımı (hesablama)</div></div>' +
+      '<div class="kpi c4"><div class="v">' + fmt(az) + '<small>%</small></div><div class="d">Yetkinlərin rəqəmsal ödəniş payı, 2024. Qazaxıstanda: ' + fmt(kz) + '%</div></div>';
+  }
+
+  function renderBars() {
+    var e = val('channel_jun2025', 'e_commerce'), o = val('channel_jun2025', 'other'), t = e + o;
+    var pe = e / t * 100, po = o / t * 100;
+    el('channels').innerHTML =
+      '<div class="track" role="img" aria-label="E-ticarət ' + fmt(pe) + '%, POS və terminallar ' + fmt(po) + '%">' +
+      '<div class="seg-fill f-acc" style="width:' + pe.toFixed(2) + '%"></div><div class="seg-fill f-acc2" style="width:' + po.toFixed(2) + '%"></div></div>' +
+      '<div class="legend num"><span><i class="f-acc"></i>E-ticarət: ' + fmt(e, 3) + ' mlrd ₼ (' + fmt(pe) + '%)</span><span><i class="f-acc2"></i>POS və terminallar: ' + fmt(o, 3) + ' mlrd ₼ (' + fmt(po) + '%)</span></div>';
+    var c = val('count_value_jan_apr_2025', 'count'), v = val('count_value_jan_apr_2025', 'value');
+    function row(l, x, cls) {
+      return '<div class="bar-row"><div class="lbl"><span>' + l + '</span><span class="num"><b>&gt; ' + fmt(x, 0) + '%</b></span></div>' +
+        '<div class="track"><div class="seg-fill ' + cls + '" style="width:' + x + '%"></div></div></div>';
+    }
+    el('cv').innerHTML = row('Əməliyyatların sayına görə', c, 'f-acc') + row('Əməliyyatların dəyərinə görə', v, 'f-acc2');
+  }
+
+  function renderTable(series) {
+    var rows = D[series] || [];
+    el('tbody').innerHTML = rows.map(function (r) {
+      var per = series === 'monthly_2025' ? (MONTHS[Number(r.period) - 1] + ' 2025') : r.period;
+      var src = r.source.split(';').filter(Boolean).map(function (id) {
+        var s = SRC[id];
+        return s ? '<a class="tag" href="' + s.url + '" target="_blank" rel="noopener" title="' + s.title.replace(/"/g, '&quot;') + '">' + id + '</a>' : id;
+      }).join(' ');
+      return '<tr><td class="n">' + per + '</td><td class="n">' + fmt(Number(r.value), 3).replace(/,?0+$/, '') + '</td><td>' + r.unit + '</td><td>' + (r.note || '') + '</td><td><div class="tags" style="margin:0">' + src + '</div></td></tr>';
+    }).join('');
+  }
+
+  function renderSources() {
+    el('srcList').innerHTML = Object.keys(SRC).map(function (id) {
+      var s = SRC[id];
+      return '<li><b>' + id + '</b><a href="' + s.url + '" target="_blank" rel="noopener">' + s.title + '</a></li>';
+    }).join('');
+  }
+
+  function applyMode() {
+    if (!c1) return;
+    c1.setDatasetVisibility(0, mode !== 'share');
+    c1.setDatasetVisibility(1, mode !== 'value');
+    c1.update();
+  }
+
+  function build() {
+    charts.forEach(function (c) { c.destroy(); });
+    charts = [];
+    var muted = tok('--muted'), grid = tok('--line'), acc = tok('--accent'), acc2 = tok('--accent2'), fg = tok('--fg'), pop = tok('--pop'), saff = tok('--saff');
+    Chart.defaults.font.family = '"Inter", system-ui, sans-serif';
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = muted;
+    var base = { responsive: true, maintainAspectRatio: false, animation: false };
+
+    var years = ['2019','2020','2021','2022','2023','2024','2025'];
+    c1 = new Chart(el('c1'), {
+      data: { labels: years, datasets: [
+        { type: 'bar', label: 'Həcm (mlrd ₼)', data: years.map(function (y) { return val('cashless_value', y); }), backgroundColor: acc, yAxisID: 'y', order: 2, borderRadius: 2, maxBarThickness: 56 },
+        { type: 'line', label: 'Nağdsız pay (%)', data: years.map(function (y) { return val('cashless_share', y); }), borderColor: acc2, backgroundColor: acc2, yAxisID: 'y1', pointRadius: 4, pointHoverRadius: 6, borderWidth: 2.5, order: 1, spanGaps: false }
+      ] },
+      options: Object.assign({}, base, {
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, position: 'left', title: { display: true, text: 'mlrd ₼' }, grid: { color: grid } },
+          y1: { position: 'right', min: 0, max: 100, title: { display: true, text: '%' }, grid: { drawOnChartArea: false } }
+        },
+        plugins: { legend: { position: 'top', align: 'start', labels: { boxWidth: 12, color: fg } } }
+      })
+    });
+    charts.push(c1);
+    applyMode();
+
+    var cy = ['2020','2022','2023','2024'];
+    charts.push(new Chart(el('c2'), {
+      type: 'bar',
+      data: { labels: cy, datasets: [{ label: 'Kartlar (mln)', data: cy.map(function (y) { return val('cards', y); }), backgroundColor: acc, borderRadius: 2, maxBarThickness: 56 }] },
+      options: Object.assign({}, base, {
+        scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'mln ədəd' }, grid: { color: grid } } },
+        plugins: { legend: { display: false } }
+      })
+    }));
+
+    var cs = (D.findex_all || []).slice().sort(function (a, b) { return Number(b.value) - Number(a.value); }).map(function (r) { return r.period; });
+    charts.push(new Chart(el('c4'), {
+      type: 'bar',
+      data: { labels: cs, datasets: [
+        { label: 'Bütün yetkinlər', data: cs.map(function (c) { return val('findex_all', c); }), backgroundColor: acc, borderRadius: 2 },
+        { label: 'Qadınlar', data: cs.map(function (c) { return val('findex_women', c); }), backgroundColor: acc2, borderRadius: 2 }
+      ] },
+      options: Object.assign({}, base, {
+        indexAxis: 'y',
+        scales: { x: { min: 0, max: 100, title: { display: true, text: '% (15 yaş və yuxarı)' }, grid: { color: grid } }, y: { grid: { display: false } } },
+        plugins: { legend: { position: 'top', align: 'start', labels: { boxWidth: 12, color: fg } } }
+      })
+    }));
+
+    charts.push(new Chart(el('c5'), {
+      type: 'line',
+      data: { labels: MONTHS, datasets: [{ label: 'Nağdsız həcm (mlrd ₼)', data: MONTHS.map(function (m, i) { return val('monthly_2025', ('0' + (i + 1)).slice(-2)); }), borderColor: acc, backgroundColor: acc, pointRadius: 5, pointHoverRadius: 7, borderWidth: 0, showLine: false }] },
+      options: Object.assign({}, base, {
+        scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'mlrd ₼' }, grid: { color: grid } } },
+        plugins: { legend: { display: false } }
+      })
+    }));
+
+    var yrs = ['2020','2021','2022','2023','2024','2025'];
+    var gr = yrs.map(function (y) { return Math.round((val('cashless_value', y) / val('cashless_value', String(Number(y) - 1)) - 1) * 100); });
+    var grMax = Math.max.apply(null, gr);
+    charts.push(new Chart(el('c6'), {
+      type: 'bar',
+      data: { labels: yrs, datasets: [{ label: 'Artım (%)', data: gr, backgroundColor: gr.map(function (g) { return g === grMax ? pop : acc; }), borderRadius: 4, maxBarThickness: 56 }] },
+      options: Object.assign({}, base, { scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: '%' }, grid: { color: grid } } }, plugins: { legend: { display: false } } })
+    }));
+
+    var ay = ['2022','2023','2024'];
+    charts.push(new Chart(el('c8'), {
+      data: { labels: ay, datasets: [
+        { type: 'bar', label: 'Dəyər (mln ₼)', data: ay.map(function (y) { return val('ips_value', y); }), backgroundColor: acc, yAxisID: 'y', borderRadius: 4, maxBarThickness: 56, order: 2 },
+        { type: 'line', label: 'Say (min)', data: ay.map(function (y) { return val('ips_count', y); }), borderColor: pop, backgroundColor: pop, yAxisID: 'y1', pointRadius: 5, borderWidth: 3, order: 1 }
+      ] },
+      options: Object.assign({}, base, { scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'mln ₼' }, grid: { color: grid } }, y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'min' }, grid: { drawOnChartArea: false } } }, plugins: { legend: { position: 'top', align: 'start', labels: { boxWidth: 12, color: fg } } } })
+    }));
+
+    charts.push(new Chart(el('c9'), {
+      type: 'bar',
+      data: { labels: ['2022', '2023'], datasets: [{ label: 'Google Pay (mln ₼)', data: [val('google_pay_value', '2022'), val('google_pay_value', '2023')], backgroundColor: [saff, pop], borderRadius: 4, maxBarThickness: 90 }] },
+      options: Object.assign({}, base, { scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'mln ₼' }, grid: { color: grid } } }, plugins: { legend: { display: false } } })
+    }));
+
+    charts.push(new Chart(el('c10'), {
+      type: 'bar',
+      data: { labels: ['POS-da təmassız ödəniş', 'Təmassız kartlar', 'POS-da Apple/Google Pay'], datasets: [{ label: '%', data: [val('pos_contactless', '2023'), val('cards_contactless', '2023'), val('apple_google_pos', '2023')], backgroundColor: [acc, saff, pop], borderRadius: 4 }] },
+      options: Object.assign({}, base, { indexAxis: 'y', scales: { x: { min: 0, max: 100, title: { display: true, text: '%' }, grid: { color: grid } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } })
+    }));
+
+    var gc = ['Azərbaycan', 'Ermənistan', 'Gürcüstan', 'Qazaxıstan'];
+    var gv = gc.map(function (c) { return Math.round((val('findex_all', c) - val('findex_women', c)) * 10) / 10; });
+    charts.push(new Chart(el('c11'), {
+      type: 'bar',
+      data: { labels: gc, datasets: [{ label: 'Fərq (bənd)', data: gv, backgroundColor: gv.map(function (g, i) { return i === 0 ? pop : acc; }), borderRadius: 4, maxBarThickness: 56 }] },
+      options: Object.assign({}, base, { scales: { x: { grid: { display: false } }, y: { title: { display: true, text: 'bənd' }, grid: { color: grid } } }, plugins: { legend: { display: false } } })
+    }));
+
+    charts.push(new Chart(el('c12'), {
+      type: 'bar',
+      data: { labels: ['Azərbaycan', 'Avropa və Mərkəzi Asiya', 'Qazaxıstan'], datasets: [{ label: '%', data: [val('findex_all', 'Azərbaycan'), val('eca_avg', '2024'), val('findex_all', 'Qazaxıstan')], backgroundColor: [pop, saff, acc], borderRadius: 4, maxBarThickness: 90 }] },
+      options: Object.assign({}, base, { scales: { x: { grid: { display: false } }, y: { min: 0, max: 100, title: { display: true, text: '%' }, grid: { color: grid } } }, plugins: { legend: { display: false } } })
+    }));
+  }
+
+  function renderExtras() {
+    var e = val('channel_jun2025', 'e_commerce'), o = val('channel_jun2025', 'other');
+    var n = Math.round(e / (e + o) * 100), h = '', i;
+    for (i = 0; i < 100; i++) h += '<i' + (i < n ? '' : ' class="o"') + '></i>';
+    el('dots').innerHTML = h;
+    var a = val('per_capita_ops', '2023'), t = val('per_capita_ops', 'hədəf') || val('per_capita_ops', 'hədək');
+    el('percap').innerHTML =
+      '<div class="pbar"><div class="lbl"><span>2023</span><span class="big g">' + fmt(a, 0) + '</span></div><div class="ptrack"><div class="pfill" style="width:' + (a / t * 100).toFixed(1) + '%;background:var(--accent)"></div></div></div>' +
+      '<div class="pbar"><div class="lbl"><span>Hədəf</span><span class="big o">' + fmt(t, 0) + '</span></div><div class="ptrack"><div class="pfill" style="width:100%;background:var(--pop)"></div></div></div>' +
+      '<p class="sub" style="margin-top:10px">Hədəfə çatmaq üçün əməliyyat sayı təxminən ' + fmt(t / a, 1) + ' dəfə artmalıdır (hesablama).</p>';
+  }
+
+  function setup() {
+    renderKpis(); renderBars(); renderExtras(); renderSources();
+    var sel = el('seriesSel');
+    sel.innerHTML = Object.keys(SERIES).filter(function (k) { return D[k]; }).map(function (k) { return '<option value="' + k + '">' + SERIES[k] + '</option>'; }).join('');
+    sel.addEventListener('change', function () { renderTable(sel.value); });
+    renderTable(sel.value);
+    Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function (b) {
+      b.addEventListener('click', function () {
+        mode = b.getAttribute('data-mode');
+        Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        applyMode();
+      });
+    });
+    build();
+    try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', build); } catch (e) {}
+    new MutationObserver(build).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+
+  Promise.resolve(["series,period,value,unit,source,note\ncashless_value,2019,4.8,mlrd ₼,S3,\ncashless_value,2020,6.4,mlrd ₼,S4,\ncashless_value,2021,11.5,mlrd ₼,S9,\ncashless_value,2022,24.4,mlrd ₼,S5,\ncashless_value,2023,49,mlrd ₼,S3,\ncashless_value,2024,78.9,mlrd ₼,S6,\ncashless_value,2025,99.1,mlrd ₼,S1;S2,\ncashless_share,2020,23,%,S20,Mərkəzi Bank rəsmisinin müqayisəsindən; illik rəqəm olmaya bilər\ncashless_share,2021,31.8,%,S5,Hesablama: 43.2 − 11.4 faiz bəndi\ncashless_share,2022,43.2,%,S5,\ncashless_share,2023,55.6,%,S6,Hesablama: 64.2 − 8.6 faiz bəndi\ncashless_share,2024,64.2,%,S6,\ncashless_share,2025,67.6,%,S2,\ncards,2020,9.6,mln,S4,İlin sonuna (1 yanvar 2021)\ncards,2022,13.6,mln,S5,İlin sonuna (1 yanvar 2023)\ncards,2023,16.6,mln,S8,İlin sonuna\ncards,2024,19.9,mln,S7,İlin sonuna (1 yanvar 2025)\nfindex_all,Azərbaycan,51.6,%,S10,2024; 15 yaş və yuxarı böyüklər\nfindex_all,Ermənistan,60.6,%,S10,2024\nfindex_all,Gürcüstan,69.4,%,S10,2024\nfindex_all,Türkiyə,71.4,%,S10,2024\nfindex_all,Qazaxıstan,85.0,%,S10,2024\nfindex_women,Azərbaycan,40.7,%,S11,2024; qadınlar\nfindex_women,Ermənistan,58.8,%,S11,2024; qadınlar\nfindex_women,Gürcüstan,69.8,%,S11,2024; qadınlar\nfindex_women,Qazaxıstan,82.1,%,S11,2024; qadınlar\nmonthly_2025,01,6.9,mlrd ₼,S14,\nmonthly_2025,02,7.0,mlrd ₼,S15,Mənbə 7 mlrd manatdan çox yazır; 7.0 aşağı hədd kimi götürülüb\nmonthly_2025,06,8.439,mlrd ₼,S13,\nmonthly_2025,07,8.753,mlrd ₼,S16,\nmonthly_2025,09,8.898,mlrd ₼,S17,\nmonthly_2025,10,8.83,mlrd ₼,S18,\nmonthly_2025,11,7.94,mlrd ₼,S19,\nchannel_jun2025,e_commerce,7.375,mlrd ₼,S13,2025-ci ilin iyun ayı\nchannel_jun2025,other,1.064,mlrd ₼,S13,Hesablama: 8.439 − 7.375 (POS və özünəxidmət terminalları)\ncount_value_jan_apr_2025,count,91,%,S12,\"Əməliyyatların sayına görə; mənbə \"\"91%-dən çox\"\" yazır\"\ncount_value_jan_apr_2025,value,67,%,S12,\"Dəyərə görə; mənbə \"\"67%-dən çox\"\" yazır\"\nips_value,2022,549,mln ₼,S24,Ani ödənişlər sistemi\nips_value,2023,1054,mln ₼,S24,\nips_value,2024,1373,mln ₼,S24,\nips_count,2022,338,min,S24,Ani ödənişlər sistemi üzrə əməliyyat sayı\nips_count,2023,588,min,S24,\nips_count,2024,801,min,S24,\nper_capita_ops,2023,93,əməliyyat/nəfər/il,S26,Cari göstərici\nper_capita_ops,hədəf,200,əməliyyat/nəfər/il,S26,Mərkəzi Bankın strateji hədəfi\nnps_gdp_multiple,9 ay 2025,6.2,dəfə,S25,Milli ödəniş sistemi üzrə ödənişlər ÜDM-in neçə mislidir (590.1 mlrd ₼)\neca_avg,2024,69,%,S21,Avropa və Mərkəzi Asiya regionunda rəqəmsal ödəniş istifadəsi\npos_contactless,2023,91,%,S8,POS ödənişlərinin təmassız payı (ən azı)\ncards_contactless,2023,76,%,S8,Təmassız ödənişi dəstəkləyən kartların payı (ən azı)\napple_google_pos,2023,25,%,S26,POS-da nağdsız ödənişlərin hər 4-dən 1-i Apple Pay və ya Google Pay ilə\ngoogle_pay_value,2022,85.7,mln ₼,S28,\ngoogle_pay_value,2023,813.2,mln ₼,S27,2022-yə nisbətən 9.5 dəfə\n", "id,title,url\nS1,Mərkəzi Bank — Digital Payments Review 2025,https://uploads.cbar.az/assets/Digital%20payments%20review_2025_KR_MI_final.pdf\nS2,Report.az — CBA: Non-cash payments approached AZN100 billion in 2025,https://api.report.az/en/finance/cba-non-cash-payments-in-azerbaijan-approached-azn100-billion-in-2025\nS3,Trend.az — ödəniş kartları ilə nağdsız əməliyyatlar 2019–2023,https://en.trend.az/business/finance/3871820.html\nS4,Mərkəzi Bank — İllik hesabat 2020,https://uploads.cbar.az/assets/Annual%20report%202020_FINAL.pdf\nS5,Mərkəzi Bank — İllik hesabat 2022,https://uploads.cbar.az/assets/Annual%20Report%202022_KR_RD_FIN.pdf\nS6,Mərkəzi Bank — Rəqəmsal Ödənişlər İcmalı 2024,https://uploads.cbar.az/assets/1bad47c0cf4cb0f5defb57c22.pdf\nS7,Trend.az — 1 yanvar 2025-ə ödəniş kartlarının sayı,https://www.trend.az/business/4015624.html\nS8,Trend.az — Banklar Assosiasiyası: 2023-də kartların sayı,https://www.trend.az/azerbaijan/business/3846538.html\nS9,Mərkəzi Bank — Payment Systems Review 2021,https://uploads.cbar.az/assets/PS_annual%20report%20-%20last_FO_2_KR_eng_final.pdf\nS10,Finobservatory — Global Findex 2025 reytinqi (rəqəmsal ödəniş),https://finobservatory.org/rankings/findex/digital\nS11,Dünya Bankı Gender Data Portal — rəqəmsal ödəniş (qadınlar),https://genderdata.worldbank.org/en/indicator/g20-any\nS12,bne IntelliNews — Azerbaijan's fintech sector (iyun 2025),https://www.intellinews.com/azerbaijan-s-fintech-sector-posts-growth-as-digital-payments-expand-and-regulatory-reforms-intensify-387723/\nS13,Trend.az — 2025-ci ilin iyun ayı üzrə nağdsız ödənişlər,https://www.trend.az/business/4073945.html\nS14,Trend.az — 2025-ci ilin yanvar ayı,https://www.trend.az/business/4009999.html\nS15,Trend.az — 2025-ci ilin fevral ayı,https://www.trend.az/business/4025288.html\nS16,Report.az — 2025-ci ilin iyul ayı,https://report.az/en/finance/over-87-of-cashless-payments-in-azerbaijan-made-through-e-commerce\nS17,Report.az — 2025-ci ilin sentyabr ayı,https://report.az/en/finance/share-of-e-commerce-in-azerbaijan-approaches-88-of-cashless-payments\nS18,Report.az — 2025-ci ilin oktyabr ayı,https://report.az/en/finance/e-commerce-drives-nearly-88-of-cashless-payments-in-azerbaijan-in-october\nS19,Caliber.az — 2025-ci ilin noyabr ayı,https://caliber.az/en/post/cashless-payments-in-azerbaijan-reach-4-69-billion-in-november-2025\nS20,Report.az — nağdsız dövriyyənin payı 2020–2022,https://report.az/en/finance/azerbaijan-more-than-doubles-cashless-payments-271022\nS21,Findev Gateway — Avropa və Mərkəzi Asiyada maliyyə inklüzivliyi,https://www.findevgateway.org/region/financial-inclusion-europe-and-central-asia\nS22,Dünya Bankı Mikrodata — Global Findex 2025 (Azərbaycan),https://microdata.worldbank.org/catalog/7867\nS23,Dünya Bankı Mikrodata — Global Findex 2021 (Azərbaycan),https://microdata.worldbank.org/catalog/5847\nS24,Mərkəzi Bank — Digital Payments Report 2024 (ani ödənişlər cədvəli),https://uploads.cbar.az/assets/Digital%20payments%20report_2024__march_2025_KR_MI%20(002).pdf\nS25,Trend.az — milli ödəniş sistemi üzrə ödənişlər (9 ay 2025),https://www.trend.az/business/4113049.html\nS26,Mərkəzi Bank — Rəqəmsal Ödənişlər İcmalı 2023,https://uploads.cbar.az/assets/ed9b73703170747bf2bf93a89.pdf\nS27,Report.az — Google Pay ödənişləri 2023,https://report.az/en/finance/transactions-via-google-pay-in-azerbaijan-near-half-a-billion-dollars\nS28,Mərkəzi Bank — Digital Payments Report 2022,https://uploads.cbar.az/assets/Digital%20Payments%20Report_2022.pdf\n"]).then(function (res) {
+    parseCSV(res[0]).forEach(function (r) { (D[r.series] = D[r.series] || []).push(r); });
+    parseCSV(res[1]).forEach(function (r) { SRC[r.id] = r; });
+    setup();
+  }).catch(function () { el('err').style.display = 'block'; });
+})();
+</script>
